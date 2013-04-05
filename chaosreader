@@ -787,10 +787,10 @@ sub Read_Input_File {
 	# unpack a little first, (efficiency)
 	($wless_fc) = unpack('H4',$packet_data);
 
-	# this matches on possible send or receive wireless traffic, however
-	# this could also be the start of an 802.3 frame - making this part
-	# of a MAC address. (The IEEE list on OUIs had these as unassigned).
-	if ($wless_fc =~ /^080[1256]/) {
+	# if the first byte would be decoded as a data frame in 802.11, try to
+	# decode.  For what values are data frames, see:
+	# https://supportforums.cisco.com/docs/DOC-13664#Frame_types
+	if ($wless_fc =~ /^[012389ab]8/) {
 		# now dig deeper,
 		# (this is one form of 802.11 - the form we are interested 
 		# in, however note that there is a lot more to 802.11).
