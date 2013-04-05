@@ -663,11 +663,15 @@ sub Open_Input_File {
 	#
 	($ident) = unpack('a8',$header);
 
+	$DATALINK_TYPE = "unknown";
 	if ($ident =~ /^snoop/) {
 	
 		$TYPE = "snoop";
 		$length = read(INFILE,$header,8);
 		($version,$type) = unpack('NN',$header);
+		if ($type == 3) {
+			$DATALINK_TYPE = "ethernet";
+		}
 
 	} elsif ($ident =~ /^\241\262\303\324|^\324\303\262\241/ ||
 		 $ident =~ /^\241\262\315\064|^\064\315\262\241/) {
@@ -698,12 +702,27 @@ sub Open_Input_File {
 			print STDERR "ERROR09: Wrong tcpdump version ";
 			print STDERR "($major.$minor).\n(expected 2.4).\n";
 			exit 1;
-	}
+		}
+
 		#
 		#  Nudge the filehandle past the rest of the header...
 		#
 		$length = read(INFILE,$header_rest,16);
-	
+
+		#
+		#  Get the datalink type
+		#
+		($thiszone,$sigflags,$snaplen,$type)
+		 = unpack(($STYLE =~ /1$/)?"NNNN":"VVVV",$header_rest); 
+		if ($type == 1) {
+			$DATALINK_TYPE = "ethernet";
+		} elsif ($type == 9) {
+			$DATALINK_TYPE = "ppp";
+		} elsif ($type == 105) {
+			$DATALINK_TYPE = "802.11";
+		} elsif ($type == 127) {
+			$DATALINK_TYPE = "802.11+rtap";
+		}
 	} else {
 		#
 		#  Die - unknown file format
@@ -783,6 +802,16 @@ sub Read_Input_File {
 	#
 
 	$decoded = 0;		# this flag is true if wireless was found
+
+	# remove the radio tap header, if the datalink type says we should
+	if ($DATALINK_TYPE =~ /rtap/) {
+
+		my ($version,$pad,$len,$present);
+		($version,$pad,$len,$present)
+		 = unpack('CCnNa*',$packet_data);
+		$packet_data = substr($packet_data,$len);
+
+	}
 
 	# unpack a little first, (efficiency)
 	($wless_fc) = unpack('H4',$packet_data);
