@@ -4075,6 +4075,7 @@ END
 	   ### This causes the replay program to pause
 	   print REPLAY "ms($timediff1);\n";
 	}
+	$duration = 0.01 if $duration == 0;     # avoid divide by 0,
 	$speed = sprintf("%.2f",$bytes / (1024 * $duration));
 	print REPLAY "print \"\n\n" .
 	 "Summary: $duration2 seconds, $bytes bytes, $speed Kb/sec\\n\";";
