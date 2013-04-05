@@ -729,8 +729,8 @@ sub Read_Input_File {
    my ($trailers,$pppoe_verNtype,$pppoe_code,$pppoe_id,$pppoe_length,
     $ppp_protocol,$wless_fc,$wless_version,$wless_type,$wless_duration,
     $wless_subtype,$wless_from,$wless_to,$wless_flag,$wless_WEP,
-    $wless_bss,$wless_src,$wless_dest,$wless_cksum,$llc_head,$llc_control,
-    $llc_org,$llc_type,$wless_OK,$bytes,$counter,$packets);
+    $wless_bss,$wless_src,$wless_dest,$wless_cksum,$wless_qctrl,$llc_head,
+    $llc_control,$llc_org,$llc_type,$wless_OK,$bytes,$counter,$packets);
 
    $Bench{++$BM}{mark} = new Benchmark if $Arg{bench};
    $Bench{$BM}{text} = "Read Input File - start";
@@ -794,10 +794,19 @@ sub Read_Input_File {
 		# now dig deeper,
 		# (this is one form of 802.11 - the form we are interested 
 		# in, however note that there is a lot more to 802.11).
-		($wless_fc,$wless_duration,$wless_bss,$wless_src,
-		 $wless_dest,$wless_cksum,$llc_head,$llc_control,$llc_org,
-		 $llc_type,$ether_data) 
-		 = unpack('nnH12H12H12na2CH6H4a*',$packet_data);
+		if ($wless_fc =~ /^[89ab]8/) {
+			# If this is a QoS data frame, then there's an extra
+			# quality control field.
+			($wless_fc,$wless_duration,$wless_bss,$wless_src,
+			 $wless_dest,$wless_cksum,$wless_qctrl,$llc_head,
+			 $llc_control,$llc_org,$llc_type,$ether_data) 
+			= unpack('nnH12H12H12nna2CH6H4a*',$packet_data);
+		} else {
+			($wless_fc,$wless_duration,$wless_bss,$wless_src,
+			 $wless_dest,$wless_cksum,$llc_head,$llc_control,
+                	 $llc_org,$llc_type,$ether_data) 
+			= unpack('nnH12H12H12na2CH6H4a*',$packet_data);
+		}
 	
 		$wless_to = $wless_fc & 1;
 
