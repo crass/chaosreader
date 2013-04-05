@@ -635,9 +635,17 @@ sub Open_Input_File {
 	print "Opening, $infile\n\n" unless $Arg{quiet};
 
 	#
-	#  Open packet log
+	#  Decompress (if needed) and open packet log
 	#
-	open(INFILE,$infile) || die "Can't open $infile: $!\n";
+	if ($infile =~ /\.xz$/) {
+		open(INFILE,'-|',"xz -d -c < $infile") || die "Can't open $infile: $!\n";
+	} elsif ($infile =~ /\.bz2$/) {
+		open(INFILE,'-|',"bzip2 -d -c < $infile") || die "Can't open $infile: $!\n";
+	} elsif ($infile =~ /\.gz$/) {
+		open(INFILE,'-|',"gzip -d -c < $infile") || die "Can't open $infile: $!\n";
+	} else {
+		open(INFILE,$infile) || die "Can't open $infile: $!\n";
+	}
 	binmode(INFILE);	# for backward OSs
 	
 	#
