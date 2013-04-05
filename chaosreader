@@ -767,8 +767,9 @@ sub Read_Input_File {
 	unless ($Arg{quiet}) {
 		$bytes += $record_size;
 		if (($packet % 16) == 0) {
-			printf("%s %2.0f%% (%d/%d)","\b"x24,
+			$progress = sprintf("%2.0f%% (%d/%d)",
 			 (100*$bytes/$SIZE),$bytes,$SIZE);
+			print "\b" x length($progress), $progress
 		}
 	}
 
