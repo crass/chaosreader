@@ -696,7 +696,7 @@ sub Open_Input_File {
 			#  be new vers of tcpdump/libpcap in the future).
 			#
 			print STDERR "ERROR09: Wrong tcpdump version ";
-			print STDERR "($version.$type).\n(expected 2.4).\n";
+			print STDERR "($major.$minor).\n(expected 2.4).\n";
 			exit 1;
 	}
 		#
